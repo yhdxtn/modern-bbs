@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('回复管理')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page admin-page">
+    <section class="admin-hero"><div><p class="eyebrow">Comments</p><h1>回复管理</h1></div></section>
+    <section class="admin-shell">
+        <aside class="admin-menu">
+            <a th:href="@{/admin/dashboard}">档案概览</a>
+            <a th:href="@{/admin/users}">身份管理</a>
+            <a th:href="@{/admin/posts}">议案管理</a>
+            <a class="active" th:href="@{/admin/comments}">回复管理</a>
+            <a th:href="@{/admin/categories}">分区管理</a>
+            <a th:href="@{/admin/command}">态势与时间</a>
+        </aside>
+        <div class="admin-content admin-card">
+            <div class="alert success" th:if="${success}" th:text="${success}">成功</div>
+            <div class="alert" th:if="${error}" th:text="${error}">错误</div>
+            <table class="admin-table">
+                <thead><tr><th>ID</th><th>回复内容</th><th>所属议案</th><th>作者</th><th>时间</th><th>操作</th></tr></thead>
+                <tbody>
+                <tr th:each="comment : ${comments.content}">
+                    <td th:text="${comment.id}">1</td>
+                    <td th:text="${#strings.abbreviate(comment.content, 70)}">内容</td>
+                    <td><a th:href="@{/posts/{id}(id=${comment.post.id})}" th:text="${#strings.abbreviate(comment.post.title, 34)}">议案</a></td>
+                    <td th:text="${comment.author.displayName}">作者</td>
+                    <td th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">时间</td>
+                    <td>
+                        <form th:action="@{/admin/comments/{id}/delete(id=${comment.id})}" method="post" onsubmit="return confirm('确定删除这条回复吗？');">
+                            <button class="btn btn-sm btn-danger" type="submit">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="pagination" th:if="${comments.totalPages > 1}">
+                <a class="btn btn-ghost" th:if="${comments.hasPrevious()}" th:href="@{/admin/comments(page=${comments.number - 1})}">上一页</a>
+                <span th:text="|${comments.number + 1} / ${comments.totalPages}|">1 / 1</span>
+                <a class="btn btn-ghost" th:if="${comments.hasNext()}" th:href="@{/admin/comments(page=${comments.number + 1})}">下一页</a>
+            </div>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

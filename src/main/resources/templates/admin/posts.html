@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('议案管理')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page admin-page">
+    <section class="admin-hero"><div><p class="eyebrow">Posts</p><h1>议案管理</h1></div></section>
+    <section class="admin-shell">
+        <aside class="admin-menu">
+            <a th:href="@{/admin/dashboard}">档案概览</a>
+            <a th:href="@{/admin/users}">身份管理</a>
+            <a class="active" th:href="@{/admin/posts}">议案管理</a>
+            <a th:href="@{/admin/comments}">回复管理</a>
+            <a th:href="@{/admin/categories}">分区管理</a>
+            <a th:href="@{/admin/command}">态势与时间</a>
+        </aside>
+        <div class="admin-content admin-card">
+            <div class="alert success" th:if="${success}" th:text="${success}">成功</div>
+            <div class="alert" th:if="${error}" th:text="${error}">错误</div>
+            <table class="admin-table">
+                <thead><tr><th>ID</th><th>标题</th><th>分区</th><th>作者</th><th>浏览/回复</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody>
+                <tr th:each="post : ${posts.content}">
+                    <td th:text="${post.id}">1</td>
+                    <td><a th:href="@{/posts/{id}(id=${post.id})}" th:text="${post.title}">标题</a></td>
+                    <td th:text="${post.category.name}">分区</td>
+                    <td th:text="${post.author.displayName}">作者</td>
+                    <td th:text="|${post.views} / ${post.commentCount}|">0 / 0</td>
+                    <td><span class="role-badge" th:classappend="${post.pinned} ? ' admin' : ''" th:text="${post.pinned} ? '置顶' : '普通'">普通</span></td>
+                    <td class="actions-cell">
+                        <form th:action="@{/admin/posts/{id}/pin(id=${post.id})}" method="post">
+                            <input type="hidden" name="pinned" th:value="${post.pinned} ? false : true">
+                            <button class="btn btn-sm btn-ghost" type="submit" th:text="${post.pinned} ? '取消置顶' : '置顶'">置顶</button>
+                        </form>
+                        <form th:action="@{/admin/posts/{id}/delete(id=${post.id})}" method="post" onsubmit="return confirm('确定删除这篇议案和它的全部回复吗？');">
+                            <button class="btn btn-sm btn-danger" type="submit">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="pagination" th:if="${posts.totalPages > 1}">
+                <a class="btn btn-ghost" th:if="${posts.hasPrevious()}" th:href="@{/admin/posts(page=${posts.number - 1})}">上一页</a>
+                <span th:text="|${posts.number + 1} / ${posts.totalPages}|">1 / 1</span>
+                <a class="btn btn-ghost" th:if="${posts.hasNext()}" th:href="@{/admin/posts(page=${posts.number + 1})}">下一页</a>
+            </div>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('分区管理')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page admin-page">
+    <section class="admin-hero">
+        <div><p class="eyebrow">Categories</p><h1>分区管理</h1></div>
+        <a class="btn btn-primary" th:href="@{/admin/categories/new}">新增分区</a>
+    </section>
+    <section class="admin-shell">
+        <aside class="admin-menu">
+            <a th:href="@{/admin/dashboard}">档案概览</a>
+            <a th:href="@{/admin/users}">身份管理</a>
+            <a th:href="@{/admin/posts}">议案管理</a>
+            <a th:href="@{/admin/comments}">回复管理</a>
+            <a class="active" th:href="@{/admin/categories}">分区管理</a>
+            <a th:href="@{/admin/command}">态势与时间</a>
+        </aside>
+        <div class="admin-content admin-card">
+            <div class="alert success" th:if="${success}" th:text="${success}">成功</div>
+            <div class="alert" th:if="${error}" th:text="${error}">错误</div>
+            <table class="admin-table">
+                <thead><tr><th>ID</th><th>名称</th><th>slug</th><th>说明</th><th>负责人</th><th>发帖权限</th><th>排序</th><th>操作</th></tr></thead>
+                <tbody>
+                <tr th:each="cat : ${categories}">
+                    <td th:text="${cat.id}">1</td>
+                    <td><strong th:text="${cat.name}">分区</strong></td>
+                    <td th:text="${cat.slug}">slug</td>
+                    <td th:text="${cat.description}">说明</td>
+                    <td><span class="role-badge" th:text="${cat.managerDisplayCode}">负责人</span></td>
+                    <td><span class="role-badge" th:text="${cat.executiveOnly ? '执委会代表' : '全体元老'}">全体元老</span></td>
+                    <td th:text="${cat.sortOrder}">0</td>
+                    <td class="actions-cell">
+                        <a class="btn btn-sm btn-ghost" th:href="@{/admin/categories/{id}/edit(id=${cat.id})}">编辑</a>
+                        <form th:action="@{/admin/categories/{id}/delete(id=${cat.id})}" method="post" onsubmit="return confirm('确定删除这个分区吗？分区下有议案时不能删除。');">
+                            <button class="btn btn-sm btn-danger" type="submit">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

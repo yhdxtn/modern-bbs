@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${post.title})}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page narrow">
+    <article class="detail-card">
+        <div class="meta-line">
+            <span class="badge" th:text="${post.category.name}">分区</span>
+            <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">时间</span>
+            <span th:text="|${post.views} 次阅览|">0 次阅览</span>
+            <span class="badge pinned" th:if="${post.pinned}">置顶讨论</span>
+        </div>
+        <h1 th:text="${post.title}">讨论标题</h1>
+        <div class="detail-author detail-author-with-actions">
+            <div class="detail-author-main">
+                <a th:href="@{/users/{username}(username=${post.author.username})}" class="avatar-link avatar-fallback-link">
+                    <img th:if="${post.author.customAvatar}" th:src="${post.author.avatarUrl}" alt="avatar">
+                    <span th:unless="${post.author.customAvatar}" class="avatar-initial" th:text="${post.author.avatarInitial}">元</span>
+                </a>
+                <div>
+                    <a class="author-code-link" th:href="@{/users/{username}(username=${post.author.username})}" th:text="${post.author.displayName}">发起元老</a>
+                    <span class="role-badge" th:text="${post.author.roleLabel}">普通元老</span>
+                    <small th:text="|呼号：${post.author.archiveDisplayCode} · ${post.author.councilDepartment}|">呼号 · 部门</small>
+                </div>
+            </div>
+            <form th:if="${currentUser != null and (currentUser.admin or currentUser.id == post.author.id)}"
+                  th:action="@{/posts/{id}/delete(id=${post.id})}"
+                  method="post"
+                  class="post-delete-form"
+                  onsubmit="return confirm('确定删除这篇议案和全部回复吗？删除后不可恢复。');">
+                <button class="btn btn-sm btn-danger" type="submit">删除议案</button>
+            </form>
+        </div>
+        <div class="content rich-content" th:utext="${renderedContent}">正文</div>
+    </article>
+
+    <section class="compact-comment-area" id="comments">
+        <div class="compact-comment-titlebar comment-sort-titlebar">
+            <div>
+                <h2>元老回复 <span th:text="${post.commentCount}">0</span></h2>
+                <span>一级评论为主，楼中回复紧凑收在该楼下。</span>
+            </div>
+            <nav class="comment-sort-tabs" aria-label="评论排序">
+                <a th:href="@{/posts/{id}(id=${post.id},commentSort='oldest')}" th:classappend="${commentSort == 'oldest'} ? 'active' : ''">按时间</a>
+                <a th:href="@{/posts/{id}(id=${post.id},commentSort='newest')}" th:classappend="${commentSort == 'newest'} ? 'active' : ''">最新</a>
+                <a th:href="@{/posts/{id}(id=${post.id},commentSort='hot')}" th:classappend="${commentSort == 'hot'} ? 'active' : ''">最热</a>
+            </nav>
+        </div>
+        <div class="alert" th:if="${error}" th:text="${error}">错误提示</div>
+
+        <div class="compact-comment-list" th:if="${comments != null and !#lists.isEmpty(comments)}">
+            <th:block th:each="comment : ${comments}" th:with="children=${childCommentsByParentId[comment.id]}, childCount=${children == null ? 0 : #lists.size(children)}">
+                <article class="compact-comment" th:id="|comment-${comment.id}|">
+                    <a th:href="@{/users/{username}(username=${comment.author.username})}" class="compact-avatar" aria-label="查看元老档案">
+                        <img th:if="${comment.author.customAvatar}" th:src="${comment.author.avatarUrl}" alt="avatar" loading="lazy">
+                        <span th:unless="${comment.author.customAvatar}" class="avatar-initial" th:text="${comment.author.avatarInitial}">元</span>
+                    </a>
+                    <div class="compact-comment-body">
+                        <div class="compact-user-row">
+                            <a class="compact-name" th:href="@{/users/{username}(username=${comment.author.username})}" th:text="${comment.author.displayName}">元老昵称</a>
+                            <span class="role-badge mini" th:text="${comment.author.roleLabel}">普通元老</span>
+                            <span class="compact-meta" th:text="|呼号：${comment.author.archiveDisplayCode} · ${comment.author.councilDepartment}|">呼号 · 部门</span>
+                        </div>
+                        <div class="compact-text comment-rich-content rich-content" th:utext="${renderedCommentContentById[comment.id]}">回复内容</div>
+                        <div class="compact-actions">
+                            <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">时间</span>
+                            <form class="inline-like-form" th:if="${currentUser != null}" th:action="@{/posts/{postId}/comments/{commentId}/like(postId=${post.id},commentId=${comment.id})}" method="post">
+                                <input type="hidden" name="commentSort" th:value="${commentSort}">
+                                <button type="submit" title="赞同" th:classappend="${likedCommentIds.contains(comment.id)} ? ' liked' : ''">♥ <em th:text="${comment.likeCount}">0</em></button>
+                            </form>
+                            <span class="like-count-static" th:if="${currentUser == null}">♥ <em th:text="${comment.likeCount}">0</em></span>
+                            <button type="button"
+                                    class="compact-reply-btn"
+                                    th:if="${currentUser != null}"
+                                    th:attr="data-reply-root=${comment.id},data-reply-parent=${comment.id},data-reply-target=${comment.author.displayName}">回复</button>
+                            <span class="compact-floor" th:text="|#${comment.floorNo}|">#1</span>
+                            <details class="comment-more-menu" th:if="${currentUser != null and (currentUser.admin or currentUser.id == comment.author.id)}">
+                                <summary aria-label="评论操作">⋯</summary>
+                                <div class="comment-more-popover">
+                                    <form th:action="@{/posts/{postId}/comments/{commentId}/delete(postId=${post.id},commentId=${comment.id})}" method="post" onsubmit="return confirm('确定删除这条回复吗？如果它下面有楼中回复，也会一并删除。');">
+                                        <button type="submit">删除回复</button>
+                                    </form>
+                                </div>
+                            </details>
+                        </div>
+
+                        <div class="compact-sub-list" th:if="${childCount > 0}">
+                            <div class="compact-sub-item" th:each="reply, iter : ${children}" th:classappend="${iter.index >= 2} ? ' is-extra-compact-reply'" th:attr="data-extra-of=${comment.id}" th:id="|comment-${reply.id}|">
+                                <a th:href="@{/users/{username}(username=${reply.author.username})}" class="compact-sub-avatar" aria-label="查看元老档案">
+                                    <img th:if="${reply.author.customAvatar}" th:src="${reply.author.avatarUrl}" alt="avatar" loading="lazy">
+                                    <span th:unless="${reply.author.customAvatar}" class="avatar-initial" th:text="${reply.author.avatarInitial}">元</span>
+                                </a>
+                                <div class="compact-sub-body">
+                                    <div class="compact-sub-line">
+                                        <a class="compact-name" th:href="@{/users/{username}(username=${reply.author.username})}" th:text="${reply.author.displayName}">元老昵称</a>
+                                        <span th:if="${reply.parent != null and reply.parent.id != comment.id}" class="compact-reply-target">
+                                            回复 <a th:href="@{/users/{username}(username=${reply.parent.author.username})}" th:text="${'@' + reply.parent.author.displayName}">@目标</a>
+                                        </span>
+                                        <span>：</span>
+                                    </div>
+                                    <div class="compact-sub-text comment-rich-content rich-content" th:utext="${renderedCommentContentById[reply.id]}">楼中回复</div>
+                                    <div class="compact-sub-actions">
+                                        <span th:text="${#temporals.format(reply.createdAt, 'yyyy-MM-dd HH:mm')}">时间</span>
+                                        <form class="inline-like-form" th:if="${currentUser != null}" th:action="@{/posts/{postId}/comments/{commentId}/like(postId=${post.id},commentId=${reply.id})}" method="post">
+                                            <input type="hidden" name="commentSort" th:value="${commentSort}">
+                                            <button type="submit" th:classappend="${likedCommentIds.contains(reply.id)} ? ' liked' : ''">♥ <em th:text="${reply.likeCount}">0</em></button>
+                                        </form>
+                                        <span class="like-count-static" th:if="${currentUser == null}">♥ <em th:text="${reply.likeCount}">0</em></span>
+                                        <button type="button"
+                                                class="compact-reply-btn"
+                                                th:if="${currentUser != null}"
+                                                th:attr="data-reply-root=${comment.id},data-reply-parent=${reply.id},data-reply-target=${reply.author.displayName}">回复</button>
+                                        <details class="comment-more-menu sub" th:if="${currentUser != null and (currentUser.admin or currentUser.id == reply.author.id)}">
+                                            <summary aria-label="楼中回复操作">⋯</summary>
+                                            <div class="comment-more-popover">
+                                                <form th:action="@{/posts/{postId}/comments/{commentId}/delete(postId=${post.id},commentId=${reply.id})}" method="post" onsubmit="return confirm('确定删除这条楼中回复吗？');">
+                                                    <button type="submit">删除回复</button>
+                                                </form>
+                                            </div>
+                                        </details>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="compact-view-more" th:if="${childCount > 2}" th:attr="data-show-replies=${comment.id}" th:text="|共${childCount}条楼中回复，点击展开|">共 3 条楼中回复，点击展开</button>
+                        </div>
+
+                        <form th:if="${currentUser != null}"
+                              th:action="@{/posts/{id}/comments(id=${post.id})}"
+                              method="post"
+                              class="compact-reply-panel"
+                              th:id="|reply-form-${comment.id}|"
+                              hidden>
+                            <input type="hidden" name="parentId" th:value="${comment.id}">
+                            <div class="reply-panel-title">
+                                <span>回复</span>
+                                <strong th:text="|@${comment.author.displayName}|">@目标</strong>
+                            </div>
+                            <textarea name="content" rows="3" th:id="|reply-content-${comment.id}|" th:placeholder="|回复 ${comment.author.displayName}，补充你的意见...|" required></textarea>
+                            <div class="reply-form-tools">
+                                <label class="inline-image-button">
+                                    插入图片
+                                    <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden data-inline-image-input th:attr="data-target-textarea=|#reply-content-${comment.id}|,data-upload-status=|#reply-upload-status-${comment.id}|">
+                                </label>
+                                <span class="reply-upload-status" th:id="|reply-upload-status-${comment.id}|">图片会插入光标位置。</span>
+                            </div>
+                            <div class="reply-form-actions">
+                                <button class="btn btn-primary btn-sm" type="submit">发布回复</button>
+                                <button class="btn btn-ghost btn-sm" type="button" th:attr="data-reply-cancel=${comment.id}">收起</button>
+                            </div>
+                        </form>
+                    </div>
+                </article>
+            </th:block>
+        </div>
+
+        <div class="empty" th:if="${comments == null or #lists.isEmpty(comments)}">
+            <p>还没有元老回复，做第一个补充情报的人。</p>
+        </div>
+
+        <div class="comment-form-card compact-main-reply" th:if="${currentUser != null}">
+            <form th:action="@{/posts/{id}/comments(id=${post.id})}" method="post" class="form">
+                <label>写回复</label>
+                <textarea id="main-comment-content" name="content" rows="4" placeholder="补充情报、提出风险、给出执行建议... 支持 Markdown 和图片。" required></textarea>
+                <div class="reply-form-tools">
+                    <label class="inline-image-button">
+                        插入图片
+                        <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden data-inline-image-input data-target-textarea="#main-comment-content" data-upload-status="#main-comment-upload-status">
+                    </label>
+                    <span id="main-comment-upload-status" class="reply-upload-status">评论也可以插入图片，图片不会撑爆页面。</span>
+                </div>
+                <button class="btn btn-primary" type="submit">发布回复</button>
+            </form>
+        </div>
+        <div class="empty" th:if="${currentUser == null}">
+            <p>登记入岛并登入后，即可参与临高元老院讨论。</p>
+            <a class="btn btn-primary" th:href="@{/login(next=${'/posts/' + post.id})}">去登入</a>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+<script th:src="@{/js/app.js(v=2026050820)}"></script>
+</body>
+</html>

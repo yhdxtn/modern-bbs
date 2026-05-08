@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('登记入岛')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container auth-page">
+    <section class="auth-card">
+        <p class="eyebrow">Join the expedition</p>
+        <h1>登记穿越者身份</h1>
+        <p class="muted">用户名只支持字母、数字和下划线；昵称会显示在讨论和回复里。登记成功后，普通元老即可发帖、回复和参与讨论；默认驻点归入“临高首都区 / 登陆点”，可在个人主页改为外驻点。</p>
+        <div class="alert" th:if="${error}" th:text="${error}">错误提示</div>
+        <form th:action="@{/register}" method="post" class="form">
+            <label>用户名</label>
+            <input name="username" th:value="${username}" placeholder="例如 engineer_01" required>
+            <label>昵称</label>
+            <input name="nickname" th:value="${nickname}" placeholder="例如 机械组一号">
+            <label>密码</label>
+            <input name="password" type="password" placeholder="至少 6 位" required>
+            <button class="btn btn-primary btn-block" type="submit">登记并登入</button>
+        </form>
+        <p class="switch-line">已有身份档案？<a th:href="@{/login}">去登入</a></p>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('人机验证')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container auth-page">
+    <section class="auth-card captcha-card">
+        <p class="eyebrow">Security Check</p>
+        <h1>临高通行验证</h1>
+        <p class="muted">系统检测到当前访问过于频繁，或短时间上传流量较大。完成下面的简单验证后，可以继续访问。</p>
+        <div class="alert" th:if="${error}" th:text="${error}">错误提示</div>
+        <form th:action="@{/captcha}" method="post" class="form">
+            <input type="hidden" name="next" th:value="${next}">
+            <label>验证码题目</label>
+            <div class="captcha-question" th:text="${question}">12 + 3 = ?</div>
+            <label>答案</label>
+            <input name="answer" inputmode="numeric" autocomplete="off" placeholder="输入计算结果" required>
+            <button class="btn btn-primary btn-block" type="submit">通过验证</button>
+        </form>
+        <p class="muted">说明：这是应用层基础限流。真实部署还应该在 Nginx、CDN 或云防护中限制连接数、请求速率和上传体积。</p>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

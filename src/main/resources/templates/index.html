@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('议事厅')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+
+<main class="container page">
+    <section class="hero" th:if="${selectedCategory == null}">
+        <div>
+            <p class="eyebrow">LINGAO CAPITAL · 1638 ARCHIVE</p>
+            <h1>临高元老院议事厅</h1>
+            <p class="hero-desc">临高虽然只是海南一县，但在本系统设定中它是穿越者登陆地、事实首都区与最高议事中心。每一位登记入岛的元老都拥有发帖、回复、参与讨论的基础权限；各部门在这里提交议案、记录建设进度并协调人手与物资。</p>
+            <div class="hero-actions">
+                <a class="btn btn-primary btn-lg" th:href="@{/posts/new}">发起讨论</a>
+                <a class="btn btn-ghost btn-lg" th:href="@{/command-map}">查看临高态势模块</a>
+            </div>
+        </div>
+        <div class="hero-time-stack">
+            <div class="time-panel homepage-time-panel">
+                <span id="new-world-time-label" th:text="${newWorldLabel}">新世界标准时 NST</span>
+                <strong id="new-world-clock">--:--:--</strong>
+                <small id="new-world-date">1638年--月--日 星期-</small>
+            </div>
+            <div class="hero-card compact-archive-card">
+                <div class="stat-row"><span>讨论档案</span><strong th:text="${posts.totalElements}">0</strong></div>
+                <div class="stat-row"><span>议事分区</span><strong th:text="${navCategories.size()}">8</strong></div>
+                <div class="stat-row"><span>运行栈</span><strong>Java 17</strong></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="department-board" th:if="${selectedCategory != null}">
+        <div>
+            <p class="eyebrow">Department Bulletin</p>
+            <h1 th:text="${selectedCategory.name} + ' · 负责事项'">部门负责事项</h1>
+            <p class="muted" th:text="${selectedCategory.description}">分区说明</p>
+        </div>
+        <div class="department-message-grid">
+            <article class="department-message" th:each="msg, stat : ${departmentMessages}">
+                <span th:text="${stat.index + 1}">1</span>
+                <p th:text="${msg}">部门消息</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="department-carousel" th:if="${selectedCategory != null and departmentBanners != null and !#lists.isEmpty(departmentBanners)}" data-department-carousel>
+        <div class="carousel-head">
+            <div>
+                <p class="eyebrow">Department Showcase</p>
+                <h2 th:text="${selectedCategory.name} + ' · 宣传图'">部门宣传图</h2>
+            </div>
+            <div class="carousel-controls" th:if="${departmentBanners.size() > 1}">
+                <button type="button" data-carousel-prev aria-label="上一张">‹</button>
+                <button type="button" data-carousel-next aria-label="下一张">›</button>
+            </div>
+        </div>
+        <div class="carousel-viewport">
+            <article class="carousel-slide" th:each="banner, stat : ${departmentBanners}" th:classappend="${stat.index == 0} ? 'active' : ''">
+                <img th:src="${banner.imageUrl}" th:alt="${banner.title}">
+                <div class="carousel-overlay">
+                    <span th:text="${banner.category.name}">部门</span>
+                    <h3 th:text="${banner.title}">宣传图标题</h3>
+                    <p th:text="${banner.subtitle}">宣传图说明</p>
+                </div>
+            </article>
+        </div>
+        <div class="carousel-dots" th:if="${departmentBanners.size() > 1}">
+            <button type="button" th:each="banner, stat : ${departmentBanners}" th:classappend="${stat.index == 0} ? 'active' : ''" th:attr="data-carousel-dot=${stat.index}" aria-label="切换宣传图"></button>
+        </div>
+    </section>
+
+    <section class="toolbar" id="post-list">
+        <form class="search-form" th:action="@{/search}" method="get">
+            <input type="text" name="q" th:value="${q}" placeholder="全站检索：昵称 / 呼号 / 讨论标题 / 正文 / 回复内容...">
+            <button class="btn btn-primary" type="submit">检索</button>
+        </form>
+    </section>
+
+    <section class="grid">
+        <aside class="side-card">
+            <h3>议事分区</h3>
+            <a class="category-item" th:href="@{/}" th:classappend="${categoryId == null} ? 'active' : ''">
+                <span>全部讨论</span><small>All</small>
+            </a>
+            <a class="category-item" th:each="cat : ${navCategories}"
+               th:href="@{/(categoryId=${cat.id}, q=${q})}"
+               th:classappend="${categoryId != null and categoryId == cat.id} ? 'active' : ''">
+                <span th:text="${cat.name}">分区</span>
+                <small th:text="${cat.slug}">slug</small>
+            </a>
+        </aside>
+
+        <div class="post-list">
+            <div class="empty" th:if="${posts.empty}">
+                <h3>议事厅暂时安静</h3>
+                <p>换个关键词检索，或者由第一位登记元老发起讨论。</p>
+            </div>
+
+            <article class="post-card" th:each="post : ${posts.content}">
+                <div class="post-main">
+                    <div class="meta-line">
+                        <span class="badge" th:text="${post.category.name}">分区</span>
+                        <span th:text="${#temporals.format(post.updatedAt, 'yyyy-MM-dd HH:mm')}">时间</span>
+                        <span class="badge pinned" th:if="${post.pinned}">置顶</span>
+                    </div>
+                    <h2><a th:href="@{/posts/{id}/jump(id=${post.id})}" th:text="${post.title}">议案标题</a></h2>
+                    <p th:text="${#strings.abbreviate(post.content, 140)}">议案摘要</p>
+                    <div class="author-line">
+                        <a th:href="@{/users/{username}(username=${post.author.username})}" class="avatar-link avatar-fallback-link">
+                            <img th:if="${post.author.customAvatar}" th:src="${post.author.avatarUrl}" alt="avatar" loading="lazy">
+                            <span th:unless="${post.author.customAvatar}" class="avatar-initial" th:text="${post.author.avatarInitial}">元</span>
+                        </a>
+                        <a class="author-code-link" th:href="@{/users/{username}(username=${post.author.username})}" th:text="${post.author.displayName}">提交人</a>
+                        <small th:text="|呼号：${post.author.archiveDisplayCode} · ${post.author.councilDepartment}|">呼号 · 部门</small>
+                        <a class="post-card-open" th:href="@{/posts/{id}/jump(id=${post.id})}">进入档案</a>
+                    </div>
+                </div>
+                <div class="post-stats">
+                    <span><strong th:text="${post.views}">0</strong>阅览</span>
+                    <span><strong th:text="${post.commentCount}">0</strong>回复</span>
+                </div>
+            </article>
+
+            <div class="pagination" th:if="${posts.totalPages > 1}">
+                <a class="btn btn-ghost" th:if="${posts.hasPrevious()}" th:href="@{/(page=${posts.number - 1}, q=${q}, categoryId=${categoryId})}">上一页</a>
+                <span th:text="|${posts.number + 1} / ${posts.totalPages}|">1 / 1</span>
+                <a class="btn btn-ghost" th:if="${posts.hasNext()}" th:href="@{/(page=${posts.number + 1}, q=${q}, categoryId=${categoryId})}">下一页</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+<script th:inline="javascript">
+    window.COUNCIL_DASHBOARD = {
+        label: [[${newWorldLabel}]],
+        baseDateTime: [[${newWorldBaseDateTime}]],
+        syncEpochMillis: [[${newWorldSyncEpochMillis}]]
+    };
+</script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

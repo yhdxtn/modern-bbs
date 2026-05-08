@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('出错了')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container auth-page">
+    <section class="auth-card">
+        <p class="eyebrow">Error</p>
+        <h1>档案系统出错了</h1>
+        <p class="muted" th:text="${message} ?: '请求处理失败，请返回议事厅重试。'">错误信息</p>
+        <a class="btn btn-primary btn-block" th:href="@{/}">返回议事厅</a>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

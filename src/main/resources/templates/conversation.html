@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${otherUser.displayName} + ' · 私信')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page">
+    <section class="message-shell conversation-shell">
+        <aside class="message-sidebar">
+            <div class="section-title-row compact-title">
+                <div>
+                    <p class="eyebrow">Private Dispatch</p>
+                    <h2>元老私信</h2>
+                </div>
+                <a class="btn btn-ghost btn-small" th:href="@{/messages}">全部</a>
+            </div>
+
+            <a class="conversation-row" th:each="item : ${conversations}"
+               th:classappend="${item.other.id == otherUser.id} ? 'active' : ''"
+               th:href="@{/messages/{username}(username=${item.other.username})}">
+                <img th:if="${item.other.customAvatar}" th:src="${item.other.avatarUrl}" alt="avatar"><span th:unless="${item.other.customAvatar}" class="avatar-initial" th:text="${item.other.avatarInitial}">元</span>
+                <div class="conversation-main">
+                    <div class="conversation-topline">
+                        <strong th:text="${item.other.displayName}">000000</strong>
+                        <span th:text="${#temporals.format(item.lastMessage.createdAt, 'MM-dd HH:mm')}">时间</span>
+                    </div>
+                    <p th:text="${item.lastMessage.sender.id == currentUser.id ? '我：' + item.lastMessage.content : item.lastMessage.content}">最近消息</p>
+                </div>
+                <em th:if="${item.unreadCount > 0}" th:text="${item.unreadCount}">1</em>
+            </a>
+        </aside>
+
+        <section class="conversation-panel">
+            <header class="conversation-header">
+                <a class="conversation-user" th:href="@{/users/{username}(username=${otherUser.username})}">
+                    <img th:if="${otherUser.customAvatar}" th:src="${otherUser.avatarUrl}" alt="avatar"><span th:unless="${otherUser.customAvatar}" class="avatar-initial" th:text="${otherUser.avatarInitial}">元</span>
+                    <span>
+                        <strong th:text="${otherUser.displayName}">000000</strong>
+                        <small th:text="|呼号：${otherUser.archiveDisplayCode} · ${otherUser.councilDepartment}|">元老信息</small>
+                    </span>
+                </a>
+                <a class="btn btn-ghost btn-small" th:href="@{/users/{username}(username=${otherUser.username})}">查看档案</a>
+            </header>
+
+            <div class="flash success" th:if="${success}" th:text="${success}">已发送</div>
+
+            <div class="message-thread">
+                <div class="message-day-hint" th:if="${#lists.isEmpty(messages)}">还没有私信，写下第一封密信。</div>
+                <div class="message-bubble-row" th:each="msg : ${messages}" th:classappend="${msg.sender.id == currentUser.id} ? ' mine' : ' theirs'">
+                    <a th:href="@{/users/{username}(username=${msg.sender.username})}">
+                        <img class="message-avatar" th:if="${msg.sender.customAvatar}" th:src="${msg.sender.avatarUrl}" alt="avatar"><span th:unless="${msg.sender.customAvatar}" class="message-avatar avatar-initial" th:text="${msg.sender.avatarInitial}">元</span>
+                    </a>
+                    <div class="message-bubble-wrap">
+                        <div class="message-meta">
+                            <strong th:text="${msg.sender.displayName}">000000</strong>
+                            <span th:text="${#temporals.format(msg.createdAt, 'yyyy-MM-dd HH:mm')}">时间</span>
+                            <span th:if="${msg.sender.id == currentUser.id and msg.readAt != null}">已读</span>
+                            <span th:if="${msg.sender.id == currentUser.id and msg.readAt == null}">未读</span>
+                        </div>
+                        <div class="message-bubble" th:text="${msg.content}">内容</div>
+                    </div>
+                </div>
+            </div>
+
+            <form id="message-compose" class="message-compose" th:action="@{/messages/{username}(username=${otherUser.username})}" method="post">
+                <textarea name="content" rows="4" maxlength="2000" required placeholder="写给对方的私信，最多 2000 字。"></textarea>
+                <div class="message-compose-actions">
+                    <span>仅双方可在本系统内查看。涉及公开议题请发到议事分区。</span>
+                    <button class="btn btn-primary" type="submit">发送私信</button>
+                </div>
+            </form>
+        </section>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

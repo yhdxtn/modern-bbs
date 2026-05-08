@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('部门宣传图管理')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page admin-page">
+    <section class="admin-hero">
+        <div>
+            <p class="eyebrow">Department Banner Console</p>
+            <h1>部门宣传图管理</h1>
+            <p class="muted">分区负责人可维护自己负责分区的首页轮播图；管理员可以维护全部分区。</p>
+        </div>
+    </section>
+
+    <section class="admin-shell wide-admin-shell">
+        <div class="admin-content admin-card">
+            <div class="alert success" th:if="${success}" th:text="${success}">成功</div>
+            <div class="alert" th:if="${error}" th:text="${error}">错误</div>
+
+            <h2>新增宣传图</h2>
+            <form th:action="@{/department/banners}" method="post" enctype="multipart/form-data" class="form banner-form-grid">
+                <label>所属分区</label>
+                <select name="categoryId" required>
+                    <option th:each="cat : ${manageableCategories}" th:value="${cat.id}" th:text="${cat.name}">分区</option>
+                </select>
+                <label>标题</label>
+                <input name="title" maxlength="80" placeholder="例如：临高首都区扩建一期" required>
+                <label>副标题</label>
+                <textarea name="subtitle" rows="2" maxlength="220" placeholder="简短说明宣传图内容"></textarea>
+                <label>上传图片</label>
+                <input name="imageFile" type="file" accept="image/*">
+                <label>或填写图片 URL</label>
+                <input name="imageUrl" maxlength="500" placeholder="/uploads/banners/xxx.png 或 https://...">
+                <div class="form-split two-col">
+                    <div>
+                        <label>按钮文字</label>
+                        <input name="linkText" maxlength="40" placeholder="查看详情">
+                    </div>
+                    <div>
+                        <label>跳转链接</label>
+                        <input name="linkUrl" maxlength="500" placeholder="/posts/1 或 https://...">
+                    </div>
+                </div>
+                <div class="form-split two-col">
+                    <div>
+                        <label>排序值</label>
+                        <input name="sortOrder" type="number" value="0">
+                    </div>
+                    <label class="checkbox-line banner-visible-check">
+                        <input type="checkbox" name="visible" value="true" checked>
+                        前台显示
+                    </label>
+                </div>
+                <button class="btn btn-primary btn-block" type="submit">新增宣传图</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="banner-admin-list">
+        <article class="admin-card banner-edit-card" th:each="banner : ${banners}">
+            <div class="banner-edit-preview">
+                <img th:src="${banner.imageUrl}" alt="宣传图">
+                <div>
+                    <span class="badge" th:text="${banner.category.name}">分区</span>
+                    <h3 th:text="${banner.title}">标题</h3>
+                    <p th:text="${banner.subtitle}">说明</p>
+                </div>
+            </div>
+            <form th:action="@{/department/banners/{id}(id=${banner.id})}" method="post" enctype="multipart/form-data" class="form banner-form-grid compact-form">
+                <label>所属分区</label>
+                <select name="categoryId" required>
+                    <option th:each="cat : ${manageableCategories}" th:value="${cat.id}" th:selected="${cat.id == banner.category.id}" th:text="${cat.name}">分区</option>
+                </select>
+                <label>标题</label>
+                <input name="title" maxlength="80" th:value="${banner.title}" required>
+                <label>副标题</label>
+                <textarea name="subtitle" rows="2" maxlength="220" th:text="${banner.subtitle}"></textarea>
+                <label>更换图片</label>
+                <input name="imageFile" type="file" accept="image/*">
+                <label>图片 URL</label>
+                <input name="imageUrl" maxlength="500" th:value="${banner.imageUrl}">
+                <div class="form-split two-col">
+                    <div>
+                        <label>按钮文字</label>
+                        <input name="linkText" maxlength="40" th:value="${banner.linkText}">
+                    </div>
+                    <div>
+                        <label>跳转链接</label>
+                        <input name="linkUrl" maxlength="500" th:value="${banner.linkUrl}">
+                    </div>
+                </div>
+                <div class="form-split two-col">
+                    <div>
+                        <label>排序值</label>
+                        <input name="sortOrder" type="number" th:value="${banner.sortOrder}">
+                    </div>
+                    <label class="checkbox-line banner-visible-check">
+                        <input type="checkbox" name="visible" value="true" th:checked="${banner.visible}">
+                        前台显示
+                    </label>
+                </div>
+                <div class="actions-cell">
+                    <button class="btn btn-primary" type="submit">保存</button>
+                </div>
+            </form>
+            <form th:action="@{/department/banners/{id}/delete(id=${banner.id})}" method="post" onsubmit="return confirm('确定删除这张宣传图吗？');">
+                <button class="btn btn-danger btn-block" type="submit">删除宣传图</button>
+            </form>
+        </article>
+        <div class="empty" th:if="${#lists.isEmpty(banners)}">
+            <h3>还没有宣传图</h3>
+            <p>先给你负责的分区新增一张轮播图。建议尺寸 1600×720 或 1200×540。</p>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

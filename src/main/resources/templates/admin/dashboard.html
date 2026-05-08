@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('元老院后台')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page admin-page">
+    <section class="admin-hero">
+        <div>
+            <p class="eyebrow">Admin Center</p>
+            <h1>元老院后台管理中心</h1>
+            <p class="muted">管理穿越者身份、议案、回复、元老院分区、新世界时间与元老分布态势。</p>
+        </div>
+        <a class="btn btn-ghost" th:href="@{/}">返回议事厅</a>
+    </section>
+
+    <section class="admin-shell">
+        <aside class="admin-menu">
+            <a class="active" th:href="@{/admin/dashboard}">档案概览</a>
+            <a th:href="@{/admin/users}">身份管理</a>
+            <a th:href="@{/admin/posts}">议案管理</a>
+            <a th:href="@{/admin/comments}">回复管理</a>
+            <a th:href="@{/admin/categories}">分区管理</a>
+            <a th:href="@{/admin/command}">态势与时间</a>
+        </aside>
+
+        <div class="admin-content">
+            <div class="stats-grid">
+                <div class="stat-card"><span>账号数</span><strong th:text="${userCount}">0</strong></div>
+                <div class="stat-card"><span>管理员</span><strong th:text="${adminCount}">0</strong></div>
+                <div class="stat-card"><span>议案数</span><strong th:text="${postCount}">0</strong></div>
+                <div class="stat-card"><span>回复数</span><strong th:text="${commentCount}">0</strong></div>
+                <div class="stat-card"><span>分区数</span><strong th:text="${categoryCount}">0</strong></div>
+                <div class="stat-card"><span>亚洲元老</span><strong th:text="${worldElderTotal}">0</strong></div>
+                <div class="stat-card"><span>全国元老</span><strong th:text="${chinaElderTotal}">0</strong></div>
+                <div class="stat-card"><span>临高核心</span><strong th:text="${strategicElderTotal}">0</strong></div>
+            </div>
+
+            <div class="admin-two-col">
+                <section class="admin-card">
+                    <h2>最新议案</h2>
+                    <div class="mini-list" th:if="${latestPosts.isEmpty()}">暂无议案</div>
+                    <a class="mini-list" th:each="post : ${latestPosts}" th:href="@{/posts/{id}(id=${post.id})}">
+                        <strong th:text="${post.title}">议案标题</strong>
+                        <span th:text="|${post.author.displayName} · ${#temporals.format(post.updatedAt, 'yyyy-MM-dd HH:mm')}|">作者 · 时间</span>
+                    </a>
+                </section>
+
+                <section class="admin-card">
+                    <h2>最新回复</h2>
+                    <div class="mini-list" th:if="${latestComments.isEmpty()}">暂无回复</div>
+                    <a class="mini-list" th:each="comment : ${latestComments}" th:href="@{/posts/{id}(id=${comment.post.id})}">
+                        <strong th:text="${#strings.abbreviate(comment.content, 36)}">回复内容</strong>
+                        <span th:text="|${comment.author.displayName} · ${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}|">作者 · 时间</span>
+                    </a>
+                </section>
+            </div>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

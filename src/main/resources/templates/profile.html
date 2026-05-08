@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('个人档案')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page">
+    <section class="admin-hero profile-hero">
+        <div>
+            <p class="eyebrow">Personal Archive</p>
+            <h1>个人主页 / 元老档案</h1>
+            <p class="muted">修改你的昵称、头像、纯数字呼号、职能、专长和驻点信息。头像地址可以是网络图片，也可以是系统上传后的 /uploads/avatars/... 本地路径。系统不公开显示邮箱。</p>
+        </div>
+        <a class="btn btn-ghost" th:href="@{/}">返回临高议事厅</a>
+    </section>
+
+    <section class="profile-grid">
+        <aside class="profile-card">
+            <img class="profile-avatar" th:if="${profileUser.customAvatar}" th:src="${profileUser.avatarUrl}" alt="avatar"><div class="profile-avatar profile-avatar-initial" th:unless="${profileUser.customAvatar}" th:text="${profileUser.avatarInitial}">元</div>
+            <h2 th:text="${profileUser.nickname}">元老</h2>
+            <p class="muted" th:text="|@${profileUser.username}|">@username</p>
+            <div class="archive-code-panel">
+                <span th:text="${profileUser.archiveDisplayLabel}">呼号</span>
+                <strong th:text="${profileUser.archiveDisplayCode}">000000</strong>
+            </div>
+            <div class="profile-meta">
+                <span>身份</span><strong th:text="${profileUser.roleLabel}">普通元老</strong>
+                <span>呼号</span><strong th:text="${#strings.isEmpty(profileUser.callSign) ? '未设置' : profileUser.callSign}">000000</strong>
+                <span>电报号</span><strong th:text="${#strings.isEmpty(profileUser.telegramCode) ? '未设置' : profileUser.telegramCode}">T000000</strong>
+                <span>议案</span><strong th:text="${profileUser.postCount}">0</strong>
+                <span>回复</span><strong th:text="${profileUser.replyCount}">0</strong>
+                <span>驻点</span><strong th:text="${profileUser.stationName == null ? '未登记' : profileUser.stationName}">未登记</strong>
+                <span>部署</span><strong th:text="${profileUser.deploymentType}">临高内驻元老</strong>
+                <span>部门</span><strong th:text="${profileUser.councilDepartment}">待分配</strong>
+                <span>专长</span><strong th:text="${#strings.isEmpty(profileUser.specialty) ? '待补充' : profileUser.specialty}">待补充</strong>
+                <span>同行元老</span><strong th:text="|${profileUser.stationElderCount} 人|">1 人</strong>
+            </div>
+        </aside>
+
+        <section class="admin-card profile-form-card" id="profile-form">
+            <h2>修改个人档案</h2>
+            <div class="alert success" th:if="${success}" th:text="${success}"></div>
+            <div class="alert" th:if="${error}" th:text="${error}"></div>
+            <form class="admin-form" th:action="@{/profile}" method="post" enctype="multipart/form-data">
+                <label>
+                    昵称
+                    <input type="text" name="nickname" th:value="${profileUser.nickname}" maxlength="40" required>
+                </label>
+                <label>
+                    头像地址
+                    <input type="text" name="avatarUrl" th:value="${profileUser.avatarUrl}" maxlength="500" placeholder="可以填 https://...，也可以保留 /uploads/avatars/...">
+                </label>
+                <label>
+                    上传头像图片
+                    <input type="file" name="avatarFile" accept="image/png,image/jpeg,image/gif,image/webp">
+                </label>
+                <div class="form-split two-col">
+                    <label>
+                        呼号（纯数字）
+                        <input type="text" name="callSign" th:value="${profileUser.callSign}" maxlength="40" placeholder="例如 162801 / 300017">
+                    </label>
+                    <label>
+                        电报号（外驻档案，可选）
+                        <input type="text" name="telegramCode" th:value="${profileUser.telegramCode}" maxlength="40" placeholder="例如 1628-GD-017 / JP-008">
+                    </label>
+                </div>
+                <div class="form-split two-col">
+                    <label>
+                        所属部门 / 工作组
+                        <input type="text" name="councilDepartment" th:value="${profileUser.councilDepartment}" maxlength="80" placeholder="例如 工业委员会 / 医务组 / 航海组">
+                    </label>
+                    <label>
+                        职能专长
+                        <input type="text" name="specialty" th:value="${profileUser.specialty}" maxlength="120" placeholder="例如 单片机维修 / 电报 / 制图 / 机械 / 医疗">
+                    </label>
+                </div>
+                <label>
+                    档案简介
+                    <textarea name="bio" maxlength="500" rows="4" th:text="${profileUser.bio}" placeholder="写一点你的专业、负责部门、建设方向或外派任务；不要填写邮箱等现实联系方式"></textarea>
+                </label>
+
+                <div class="form-split">
+                    <label>
+                        驻点范围
+                        <select name="stationScope">
+                            <option value="CHINA" th:selected="${profileUser.stationScope == null or profileUser.stationScope == 'CHINA'}">中国省份 CHINA</option>
+                            <option value="WORLD" th:selected="${profileUser.stationScope == 'WORLD'}">亚洲国家/地区 WORLD</option>
+                            <option value="STRATEGIC" th:selected="${profileUser.stationScope == 'STRATEGIC'}">临高首都区 / 核心驻点 STRATEGIC</option>
+                        </select>
+                    </label>
+                    <label>
+                        驻点名称
+                        <input type="text" name="stationName" th:value="${profileUser.stationName}" maxlength="120" placeholder="临高首都区 / 登陆点 / 百仞城政务区 / 博铺港 / 海南 / 广东 / 台湾 / 济州岛 / China / Vietnam / Japan">
+                    </label>
+                    <label>
+                        同行元老数量
+                        <input type="number" name="stationElderCount" min="0" max="999999" th:value="${profileUser.stationElderCount}">
+                    </label>
+                </div>
+                <p class="muted">提示：呼号统一使用纯数字；驻点用于统计和分区协作，不在公开列表显示现实联系方式。系统不公开显示邮箱。</p>
+                <button class="btn btn-primary" type="submit">保存个人档案</button>
+            </form>
+        </section>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

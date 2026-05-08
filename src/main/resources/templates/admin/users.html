@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('身份管理')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page admin-page">
+    <section class="admin-hero"><div><p class="eyebrow">Users</p><h1>身份管理</h1></div></section>
+    <section class="admin-shell">
+        <aside class="admin-menu">
+            <a th:href="@{/admin/dashboard}">档案概览</a>
+            <a class="active" th:href="@{/admin/users}">身份管理</a>
+            <a th:href="@{/admin/posts}">议案管理</a>
+            <a th:href="@{/admin/comments}">回复管理</a>
+            <a th:href="@{/admin/categories}">分区管理</a>
+            <a th:href="@{/admin/command}">态势与时间</a>
+        </aside>
+        <div class="admin-content admin-card user-admin-card">
+            <div class="alert success" th:if="${success}" th:text="${success}">成功</div>
+            <div class="alert" th:if="${error}" th:text="${error}">错误</div>
+            <p class="muted">角色说明：普通元老可以在建设分区发帖和回复；执委会代表可以在“元老院公告 / 执委会公报”等正式分区发布；管理员拥有后台管理权限。</p>
+
+            <div class="user-admin-list">
+                <article class="user-admin-row" th:each="user : ${users.content}">
+                    <div class="user-admin-main">
+                        <a class="user-admin-avatar" th:href="@{/users/{username}(username=${user.username})}">
+                            <img th:if="${user.customAvatar}" th:src="${user.avatarUrl}" alt="avatar"><span th:unless="${user.customAvatar}" class="avatar-initial" th:text="${user.avatarInitial}">元</span>
+                        </a>
+                        <div class="user-admin-identity">
+                            <div class="user-admin-title">
+                                <a th:href="@{/users/{username}(username=${user.username})}" th:text="${user.displayName}">000000</a>
+                                <span class="role-badge" th:classappend="${user.role == 'ADMIN' ? ' admin' : (user.role == 'EXECUTIVE' ? ' executive' : '')}" th:text="${user.roleLabel}">普通元老</span>
+                            </div>
+                            <p>
+                                <strong th:text="${user.nickname}">昵称</strong>
+                                <span th:text="|'@' + ${user.username}">@username</span>
+                                <small th:text="|'ID ' + ${user.id} + ' · ' + ${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')}">ID · 时间</small>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="user-admin-meta-grid">
+                        <span><b>部门</b><em th:text="${user.councilDepartment}">待分配</em></span>
+                        <span><b>专长</b><em th:text="${#strings.isEmpty(user.specialty) ? '待补充' : user.specialty}">待补充</em></span>
+                        <span><b>驻点</b><em th:text="${user.stationName == null ? '未登记' : user.stationName}">驻点</em></span>
+                        <span><b>呼号</b><em th:text="${user.archiveDisplayCode}">000000</em></span>
+                    </div>
+
+                    <div class="user-admin-actions">
+                        <a class="btn btn-sm btn-ghost" th:href="@{/admin/users/{id}/edit(id=${user.id})}">编辑档案</a>
+                        <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" class="user-admin-role-form">
+                            <select name="role">
+                                <option value="USER" th:selected="${user.role == 'USER'}">普通元老</option>
+                                <option value="EXECUTIVE" th:selected="${user.role == 'EXECUTIVE'}">执委会代表</option>
+                                <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">管理员</option>
+                            </select>
+                            <button class="btn btn-sm btn-ghost" type="submit">保存身份</button>
+                        </form>
+                    </div>
+                </article>
+            </div>
+
+            <div class="pagination" th:if="${users.totalPages > 1}">
+                <a class="btn btn-ghost" th:if="${users.hasPrevious()}" th:href="@{/admin/users(page=${users.number - 1})}">上一页</a>
+                <span th:text="|${users.number + 1} / ${users.totalPages}|">1 / 1</span>
+                <a class="btn btn-ghost" th:if="${users.hasNext()}" th:href="@{/admin/users(page=${users.number + 1})}">下一页</a>
+            </div>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

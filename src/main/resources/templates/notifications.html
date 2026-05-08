@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('消息中心')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page narrow">
+    <section class="admin-hero notifications-hero">
+        <div>
+            <p class="eyebrow">Dispatch Center</p>
+            <h1>消息中心</h1>
+            <p class="muted">这里汇总评论回复、评论点赞和私信提醒。公开议案继续在分区讨论，私下联络可进入私信。</p>
+        </div>
+        <form th:action="@{/notifications/read-all}" method="post">
+            <button class="btn btn-ghost" type="submit">全部标为已读</button>
+        </form>
+    </section>
+
+    <section class="notification-panel">
+        <div class="empty" th:if="${#lists.isEmpty(notifications)}">
+            <p>暂无新消息。</p>
+            <a class="btn btn-primary" th:href="@{/}">返回议事厅</a>
+        </div>
+
+        <article class="notification-row" th:each="n : ${notifications}" th:classappend="${n.unread} ? ' unread' : ''">
+            <div class="notification-icon" th:text="${n.typeLabel.substring(0,1)}">消</div>
+            <div class="notification-main">
+                <div class="notification-topline">
+                    <span class="badge" th:text="${n.typeLabel}">通知</span>
+                    <time th:text="${#temporals.format(n.createdAt, 'yyyy-MM-dd HH:mm')}">时间</time>
+                    <em th:if="${n.unread}">未读</em>
+                </div>
+                <h2 th:text="${n.title}">消息标题</h2>
+                <p th:text="${n.content}">消息内容</p>
+            </div>
+            <form th:action="@{/notifications/{id}/read(id=${n.id})}" method="post">
+                <input type="hidden" name="next" th:value="${n.targetUrl}">
+                <button class="btn btn-primary btn-sm" type="submit" th:text="${n.unread} ? '查看并标记' : '查看'">查看</button>
+            </form>
+        </article>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+<script th:src="@{/js/app.js(v=2026050820)}"></script>
+</body>
+</html>

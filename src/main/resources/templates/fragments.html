@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' · 临高元老院'">临高元老院</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css(v=2026050820)}">
+    <link rel="stylesheet" th:href="@{/css/mobile.css(v=2026050822)}">
+</head>
+<body>
+<header class="site-header" th:fragment="navbar">
+    <div class="container nav-wrap">
+        <a class="brand" th:href="@{/}">
+            <span class="brand-mark">启</span>
+            <span>临高元老院</span>
+        </a>
+        <nav class="nav-links">
+            <a th:href="@{/}" th:classappend="${categoryId == null} ? 'active' : ''">议事厅</a>
+            <a th:href="@{/command-map}">临高态势</a>
+            <a th:href="@{/search}">检索</a>
+            <a th:each="cat, stat : ${navCategories}"
+               th:if="${stat.index < 2}"
+               th:href="@{/(categoryId=${cat.id})}"
+               th:text="${cat.name}"
+               th:classappend="${categoryId != null and categoryId == cat.id} ? 'active' : ''">分区</a>
+            <details class="nav-more" th:if="${navCategories.size() > 2}">
+                <summary>更多分区</summary>
+                <div class="nav-more-menu">
+                    <a th:each="cat, stat : ${navCategories}"
+                       th:if="${stat.index >= 2}"
+                       th:href="@{/(categoryId=${cat.id})}"
+                       th:text="${cat.name}"
+                       th:classappend="${categoryId != null and categoryId == cat.id} ? 'active' : ''">分区</a>
+                </div>
+            </details>
+        </nav>
+        <div class="nav-actions">
+            <a class="btn btn-admin" th:if="${currentUser != null and currentUser.role == 'ADMIN'}" th:href="@{/admin}">后台</a>
+            <a class="btn btn-ghost nav-banner-admin" th:if="${canManageDepartmentBanners}" th:href="@{/department/banners}">宣传图</a>
+            <a class="btn btn-primary new-post-btn" th:if="${currentUser != null}" th:href="@{/posts/new}">发起讨论</a>
+            <a class="btn btn-ghost message-nav-btn" th:if="${currentUser != null}" th:href="@{/notifications}">消息<span class="nav-badge" th:if="${notificationUnreadCount > 0}" th:text="${notificationUnreadCount}">0</span></a>
+            <a class="btn btn-ghost message-nav-btn" th:if="${currentUser != null}" th:href="@{/messages}">私信<span class="nav-badge" th:if="${privateUnreadCount > 0}" th:text="${privateUnreadCount}">0</span></a>
+            <a class="btn btn-ghost" th:if="${currentUser == null}" th:href="@{/login}">登入</a>
+            <a class="btn btn-primary" th:if="${currentUser == null}" th:href="@{/register}">登记入岛</a>
+            <a class="user-pill profile-pill" th:if="${currentUser != null}" th:href="@{/profile}" title="个人档案">
+                <img th:if="${currentUser.customAvatar}" th:src="${currentUser.avatarUrl}" alt="avatar">
+                <span th:unless="${currentUser.customAvatar}" class="avatar-initial" th:text="${currentUser.avatarInitial}">元</span>
+                <span th:text="${currentUser.displayName}">元老</span>
+            </a>
+            <form class="logout-inline" th:if="${currentUser != null}" th:action="@{/logout}" method="post">
+                <button type="submit">离线</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<footer class="footer" th:fragment="footer">
+    <div class="container footer-inner">
+        <span>© 临高元老院 · 穿越者专用论坛</span>
+        <span>Java + Spring Boot + MySQL · 临高档案系统</span>
+    </div>
+</footer>
+</body>
+</html>

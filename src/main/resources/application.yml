@@ -1,0 +1,57 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: qiming-travelers-bbs
+
+  datasource:
+    # 新版建议使用独立数据库 qiming_bbs，避免和旧版 modern_bbs 的简单表结构冲突。
+    url: jdbc:mysql://127.0.0.1:3306/qiming_bbs?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      # 开发阶段用 update：新增表和字段会自动补上。
+      # 真正上线建议改为 validate，并使用 docs/database-v2.sql 管理结构变更。
+      ddl-auto: update
+    open-in-view: false
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  sql:
+    init:
+      mode: always
+      encoding: UTF-8
+
+  thymeleaf:
+    cache: false
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 80MB
+
+app:
+  upload:
+    root: uploads
+    max-image-bytes: 52428800
+  security:
+    # 应用层基础限流：超过阈值会要求验证码。上线仍建议配合 Nginx/CDN/WAF。
+    max-requests-per-minute: 180
+    max-posts-per-minute: 20
+    max-bytes-per-minute: 52428800
+    captcha-valid-minutes: 30
+  admin:
+    default-username: admin
+    default-password: admin123456
+    default-nickname: 执委会管理员
+
+logging:
+  level:
+    org.hibernate.SQL: warn

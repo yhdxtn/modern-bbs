@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('进入议案档案')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page narrow">
+    <section class="jump-card">
+        <p class="eyebrow">Archive Transfer</p>
+        <h1>正在打开议案档案</h1>
+        <p class="muted">系统正在调取讨论正文、楼中回复和相关档案。</p>
+        <article class="jump-preview">
+            <span class="badge" th:text="${post.category.name}">分区</span>
+            <h2 th:text="${post.title}">议案标题</h2>
+            <p th:text="|提交人：${post.author.displayName} · 呼号：${post.author.archiveDisplayCode} · ${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}|">提交人</p>
+        </article>
+        <div class="jump-actions">
+            <a class="btn btn-primary" th:href="@{/posts/{id}(id=${post.id})}">立即进入</a>
+            <a class="btn btn-ghost" th:href="@{/(categoryId=${post.category.id})}">返回分区</a>
+        </div>
+    </section>
+</main>
+<script th:inline="javascript">
+    const target = /*[[@{/posts/{id}(id=${post.id})}]]*/ '/';
+    window.setTimeout(() => { window.location.href = target; }, 900);
+</script>
+</body>
+</html>

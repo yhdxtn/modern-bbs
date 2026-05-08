@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('全站检索')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+
+<main class="container page">
+    <section class="admin-hero search-hero">
+        <div>
+            <p class="eyebrow">Central Archive Search</p>
+            <h1>全站档案检索</h1>
+            <p class="muted">可同时检索元老用户、讨论帖子和回复内容。公开结果只显示昵称、呼号、部门、驻点和专长，不显示邮箱。</p>
+        </div>
+        <a class="btn btn-ghost" th:href="@{/}">返回议事厅</a>
+    </section>
+
+    <section class="toolbar search-toolbar">
+        <form class="search-form" th:action="@{/search}" method="get">
+            <input type="text" name="q" th:value="${q}" placeholder="输入昵称、呼号、部门、帖子标题、正文或回复内容..." autofocus>
+            <button class="btn btn-primary" type="submit">全站检索</button>
+        </form>
+    </section>
+
+    <section class="search-summary" th:if="${!#strings.isEmpty(q)}">
+        <article><span>全部结果</span><strong th:text="${totalResults}">0</strong></article>
+        <article><span>讨论帖子</span><strong th:text="${posts.totalElements}">0</strong></article>
+        <article><span>元老用户</span><strong th:text="${users.totalElements}">0</strong></article>
+        <article><span>回复评论</span><strong th:text="${comments.totalElements}">0</strong></article>
+    </section>
+
+    <section class="empty" th:if="${#strings.isEmpty(q)}">
+        <h3>输入关键词开始检索</h3>
+        <p>例如：1628001、王洛宾、蒸汽机、临高首都区、港口防御、医疗卫生。</p>
+    </section>
+
+    <section class="search-layout" th:if="${!#strings.isEmpty(q)}">
+        <div class="search-main-column">
+            <section class="search-section">
+                <div class="section-title-row">
+                    <div>
+                        <p class="eyebrow">Threads</p>
+                        <h2>讨论帖子</h2>
+                    </div>
+                    <span th:text="|${posts.totalElements} 条|">0 条</span>
+                </div>
+                <div class="empty compact" th:if="${posts.empty}">没有匹配的讨论帖子。</div>
+                <article class="post-card search-post-card" th:each="post : ${posts.content}">
+                    <div class="post-main">
+                        <div class="meta-line">
+                            <span class="badge" th:text="${post.category.name}">分区</span>
+                            <span th:text="${#temporals.format(post.updatedAt, 'yyyy-MM-dd HH:mm')}">时间</span>
+                            <span class="badge pinned" th:if="${post.pinned}">置顶</span>
+                        </div>
+                        <h2><a th:href="@{/posts/{id}/jump(id=${post.id})}" th:text="${post.title}">讨论标题</a></h2>
+                        <p th:text="${#strings.abbreviate(post.content, 180)}">摘要</p>
+                        <div class="author-line">
+                            <a th:href="@{/users/{username}(username=${post.author.username})}" class="avatar-link avatar-fallback-link"><img th:if="${post.author.customAvatar}" th:src="${post.author.avatarUrl}" alt="avatar"><span th:unless="${post.author.customAvatar}" class="avatar-initial" th:text="${post.author.avatarInitial}">元</span></a>
+                            <a class="author-code-link" th:href="@{/users/{username}(username=${post.author.username})}" th:text="${post.author.displayName}">元老</a>
+                            <small th:text="|呼号：${post.author.archiveDisplayCode} · ${post.author.councilDepartment}|">呼号 · 部门</small>
+                        </div>
+                    </div>
+                    <div class="post-stats">
+                        <span><strong th:text="${post.views}">0</strong>阅览</span>
+                        <span><strong th:text="${post.commentCount}">0</strong>回复</span>
+                    </div>
+                </article>
+            </section>
+
+            <section class="search-section">
+                <div class="section-title-row">
+                    <div>
+                        <p class="eyebrow">Replies</p>
+                        <h2>回复评论</h2>
+                    </div>
+                    <span th:text="|${comments.totalElements} 条|">0 条</span>
+                </div>
+                <div class="empty compact" th:if="${comments.empty}">没有匹配的回复评论。</div>
+                <article class="search-comment-card" th:each="comment : ${comments.content}">
+                    <div class="comment-head">
+                        <a class="author-code-link" th:href="@{/users/{username}(username=${comment.author.username})}" th:text="${comment.author.displayName}">元老</a>
+                        <small th:text="|呼号：${comment.author.archiveDisplayCode} · ${comment.author.councilDepartment}|">呼号 · 部门</small>
+                        <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">时间</span>
+                    </div>
+                    <p th:text="${#strings.abbreviate(comment.content, 220)}">回复内容</p>
+                    <a class="search-link" th:href="@{|/posts/${comment.post.id}#comment-${comment.id}|}" th:text="|'查看所在讨论：' + ${comment.post.title}|">查看所在讨论</a>
+                </article>
+            </section>
+        </div>
+
+        <aside class="search-users-column">
+            <section class="search-section user-results-section">
+                <div class="section-title-row">
+                    <div>
+                        <p class="eyebrow">Elders</p>
+                        <h2>元老用户</h2>
+                    </div>
+                    <span th:text="|${users.totalElements} 位|">0 位</span>
+                </div>
+                <div class="empty compact" th:if="${users.empty}">没有匹配的元老用户。</div>
+                <a class="search-user-card" th:each="user : ${users.content}" th:href="@{/users/{username}(username=${user.username})}">
+                    <img th:if="${user.customAvatar}" th:src="${user.avatarUrl}" alt="avatar"><span th:unless="${user.customAvatar}" class="avatar-initial" th:text="${user.avatarInitial}">元</span>
+                    <div>
+                        <h3 th:text="${user.nickname}">元老</h3>
+                        <div class="archive-code-mini">
+                            <span th:text="'呼号'">呼号</span>
+                            <strong th:text="${user.archiveDisplayCode}">000000</strong>
+                        </div>
+                        <p th:text="|${user.roleLabel} · ${user.councilDepartment}|">普通元老 · 部门</p>
+                        <small th:text="|${#strings.isEmpty(user.specialty) ? '待补充专长' : user.specialty} · ${user.stationName == null ? '未登记驻点' : user.stationName}|">专长 · 驻点 · 呼号 · 部门</small>
+                    </div>
+                </a>
+            </section>
+        </aside>
+    </section>
+
+    <div class="pagination search-pagination" th:if="${!#strings.isEmpty(q) and (posts.totalPages > 1 or users.totalPages > 1 or comments.totalPages > 1)}">
+        <a class="btn btn-ghost" th:if="${posts.hasPrevious() or users.hasPrevious() or comments.hasPrevious()}" th:href="@{/search(page=${posts.number - 1}, q=${q})}">上一页</a>
+        <span th:text="|第 ${posts.number + 1} 页|">第 1 页</span>
+        <a class="btn btn-ghost" th:if="${posts.hasNext() or users.hasNext() or comments.hasNext()}" th:href="@{/search(page=${posts.number + 1}, q=${q})}">下一页</a>
+    </div>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

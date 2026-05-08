@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('临高态势模块')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+
+<main class="container page">
+    <section class="dashboard-card" id="world-command">
+        <div class="dashboard-header">
+            <div>
+                <p class="eyebrow">LINGAO CAPITAL PANEL · 1638</p>
+                <h2>临高首都区与亚洲元老态势模块</h2>
+                <p class="muted">元老数量不放在主页，单独在这里查看。临高是穿越者登陆地与事实首都区；地图显示亚洲范围、全国重点省份，以及以临高为核心的海南—南海驻点。数据来自 MySQL，后台可以修改，个人主页登记的驻点数量也会自动叠加。</p>
+            </div>
+            <div class="time-panel">
+                <span id="new-world-time-label" th:text="${newWorldLabel}">新世界标准时 NST</span>
+                <strong id="new-world-clock">--:--:--</strong>
+                <small id="new-world-date">1638年--月--日 星期-</small>
+            </div>
+        </div>
+
+        <div class="command-summary">
+            <div class="summary-card">
+                <span>亚洲元老总数</span>
+                <strong id="global-elders-total">0</strong>
+                <small>全部驻点限制在亚洲范围</small>
+            </div>
+            <div class="summary-card">
+                <span>全国元老总数</span>
+                <strong id="china-elders-total">0</strong>
+                <small>含临高所在海南、广东、台湾等地</small>
+            </div>
+            <div class="summary-card">
+                <span>亚洲驻点数量</span>
+                <strong id="global-station-count">0</strong>
+                <small>按国家 / 地区统计</small>
+            </div>
+            <div class="summary-card">
+                <span>核心驻地</span>
+                <strong id="top-province-name">临高</strong>
+                <small id="top-province-count">0 名元老</small>
+            </div>
+        </div>
+
+        <div class="maps-grid">
+            <section class="map-card">
+                <div class="map-head">
+                    <div>
+                        <h3>亚洲元老分布图</h3>
+                        <p>元老全部位于亚洲，越南、日本、朝鲜半岛、东南亚等可在后台继续添加。</p>
+                    </div>
+                    <span class="badge">Asia</span>
+                </div>
+                <div id="world-map" class="map-box"></div>
+            </section>
+
+            <section class="map-card">
+                <div class="map-head">
+                    <div>
+                        <h3>全国各省元老分布图</h3>
+                        <p>临高为首都区核心，海南为主基地，广东、台湾、福建、港澳等区域突出显示。</p>
+                    </div>
+                    <span class="badge">China</span>
+                </div>
+                <div id="china-map" class="map-box"></div>
+            </section>
+
+            <section class="map-card map-card-wide">
+                <div class="map-head">
+                    <div>
+                        <h3>临高首都区—南海核心驻点图</h3>
+                        <p>以临高登陆点和首都区为中心，联动海南主基地、广东、台湾、济州岛、越南、日本、琼州海峡、西沙、南沙等重点节点。</p>
+                    </div>
+                    <span class="badge">Hainan Core</span>
+                </div>
+                <div id="hainan-map" class="map-box strategic-map-box"></div>
+            </section>
+        </div>
+    </section>
+
+    <section class="toolbar command-back-toolbar">
+        <a class="btn btn-ghost" th:href="@{/}">返回临高议事厅</a>
+        <a class="btn btn-primary" th:if="${currentUser != null and currentUser.role == 'ADMIN'}" th:href="@{/admin/command}">后台修改临高态势数据</a>
+    </section>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+<script th:inline="javascript">
+    window.COUNCIL_DASHBOARD = {
+        label: [[${newWorldLabel}]],
+        baseDateTime: [[${newWorldBaseDateTime}]],
+        syncEpochMillis: [[${newWorldSyncEpochMillis}]],
+        world: [[${worldLocations}]],
+        china: [[${chinaLocations}]],
+        strategic: [[${strategicLocations}]]
+    };
+</script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

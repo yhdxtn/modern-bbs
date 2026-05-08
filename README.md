@@ -554,4 +554,3 @@ SOURCE D:/github/modern-bbs/docs/seed-1628-lingao-story.sql;
 ```
 
 新增剧情用户默认密码均为 `123456`，例如 `maqianzhu / 123456`。
-"# modern-bbs" 

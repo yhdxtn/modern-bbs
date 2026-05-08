@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('登入')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container auth-page">
+    <section class="auth-card">
+        <p class="eyebrow">Welcome back, traveler</p>
+        <h1>登入元老院账号</h1>
+        <p class="muted">登入后可以发起讨论、回复讨论和管理建设档案。</p>
+        <div class="alert" th:if="${error}" th:text="${error}">错误提示</div>
+        <form th:action="@{/login}" method="post" class="form">
+            <input type="hidden" name="next" th:value="${next}">
+            <label>用户名</label>
+            <input name="username" placeholder="例如 elder_admin" required>
+            <label>密码</label>
+            <input name="password" type="password" placeholder="至少 6 位" required>
+            <button class="btn btn-primary btn-block" type="submit">登入</button>
+        </form>
+        <p class="switch-line">还没有身份档案？<a th:href="@{/register}">登记入岛</a></p>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

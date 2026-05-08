@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('元老私信')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page">
+    <section class="admin-hero messages-hero">
+        <div>
+            <p class="eyebrow">Private Dispatch</p>
+            <h1>元老私信</h1>
+            <p class="muted">用于元老之间的一对一联络。公开讨论请继续发在议事分区；涉及个人协作、驻点沟通和临时任务，可以使用私信。</p>
+        </div>
+        <a class="btn btn-primary" th:href="@{/search}">查找元老</a>
+    </section>
+
+    <section class="message-shell">
+        <aside class="message-sidebar">
+            <div class="section-title-row compact-title">
+                <div>
+                    <p class="eyebrow">Conversations</p>
+                    <h2>会话列表</h2>
+                </div>
+                <span class="nav-badge" th:if="${privateUnreadCount > 0}" th:text="${privateUnreadCount}">0</span>
+            </div>
+
+            <div class="empty-mini" th:if="${#lists.isEmpty(conversations)}">
+                <strong>暂无私信</strong>
+                <span>进入某位元老的公开档案页，点击“发送私信”即可开始。</span>
+            </div>
+
+            <a class="conversation-row" th:each="item : ${conversations}" th:href="@{/messages/{username}(username=${item.other.username})}">
+                <img th:if="${item.other.customAvatar}" th:src="${item.other.avatarUrl}" alt="avatar"><span th:unless="${item.other.customAvatar}" class="avatar-initial" th:text="${item.other.avatarInitial}">元</span>
+                <div class="conversation-main">
+                    <div class="conversation-topline">
+                        <strong th:text="${item.other.displayName}">000000</strong>
+                        <span th:text="${#temporals.format(item.lastMessage.createdAt, 'MM-dd HH:mm')}">时间</span>
+                    </div>
+                    <p th:text="${item.lastMessage.sender.id == currentUser.id ? '我：' + item.lastMessage.content : item.lastMessage.content}">最近消息</p>
+                    <small th:text="|呼号：${item.other.archiveDisplayCode} · ${item.other.councilDepartment}|">元老</small>
+                </div>
+                <em th:if="${item.unreadCount > 0}" th:text="${item.unreadCount}">1</em>
+            </a>
+        </aside>
+
+        <section class="message-empty-panel">
+            <div class="message-empty-icon">✉</div>
+            <h2>选择一个会话</h2>
+            <p>左侧显示最近私信。也可以去某位元老主页，点击“发送私信”。</p>
+            <a class="btn btn-ghost" th:href="@{/search}">检索元老档案</a>
+        </section>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

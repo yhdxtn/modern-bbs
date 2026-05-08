@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('态势与时间管理')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page admin-page">
+    <section class="admin-hero">
+        <div>
+            <p class="eyebrow">Command Data Center</p>
+            <h1>态势与新世界时间管理</h1>
+            <p class="muted">这里的数据直接写入 MySQL。首页只显示 1638 年左右的新世界时间；元老数量与地图放在单独的“临高态势模块”中，数据会读取“后台基数 + 个人主页登记数”。临高作为登陆点与事实首都区单独列入核心图。</p>
+        </div>
+        <div class="hero-actions"><a class="btn btn-ghost" th:href="@{/}">返回议事厅</a><a class="btn btn-primary" th:href="@{/command-map}">查看临高态势模块</a></div>
+    </section>
+
+    <section class="admin-shell">
+        <aside class="admin-menu">
+            <a th:href="@{/admin/dashboard}">档案概览</a>
+            <a th:href="@{/admin/users}">身份管理</a>
+            <a th:href="@{/admin/posts}">议案管理</a>
+            <a th:href="@{/admin/comments}">回复管理</a>
+            <a th:href="@{/admin/categories}">分区管理</a>
+            <a class="active" th:href="@{/admin/command}">态势与时间</a>
+        </aside>
+
+        <div class="admin-content">
+            <div class="alert success" th:if="${success}" th:text="${success}"></div>
+            <div class="alert" th:if="${error}" th:text="${error}"></div>
+
+            <div class="stats-grid">
+                <div class="stat-card"><span>亚洲元老总数</span><strong th:text="${worldElderTotal}">0</strong></div>
+                <div class="stat-card"><span>全国元老总数</span><strong th:text="${chinaElderTotal}">0</strong></div>
+                <div class="stat-card"><span>临高核心图总数</span><strong th:text="${strategicElderTotal}">0</strong></div>
+                <div class="stat-card"><span>当前新世界时间</span><strong class="small-stat" th:text="${#strings.substring(newWorldBaseDateTime,0,10)}">1638-05-06</strong></div>
+            </div>
+
+            <section class="admin-card command-form-card">
+                <h2>新世界时间设置</h2>
+                <form class="admin-form compact-form" th:action="@{/admin/command/time}" method="post">
+                    <label>
+                        显示名称
+                        <input type="text" name="label" th:value="${newWorldLabel}" placeholder="新世界标准时 NST">
+                    </label>
+                    <label>
+                        当前新世界时间
+                        <input type="datetime-local" name="newWorldDateTime" th:value="${newWorldDateTimeInput}" min="1500-01-01T00:00" max="2500-12-31T23:59" required>
+                    </label>
+                    <button class="btn btn-primary" type="submit">保存时间设置</button>
+                </form>
+                <p class="muted">现在默认设在 1638 年左右。保存后，首页时间会从你填写的这个历史时间继续走秒，不再只是改 UTC 偏移。</p>
+            </section>
+
+            <section class="admin-card command-form-card">
+                <h2>新增元老驻点</h2>
+                <form class="admin-form location-create-form" th:action="@{/admin/command/locations}" method="post">
+                    <select name="scope">
+                        <option value="WORLD">亚洲地图 WORLD</option>
+                        <option value="CHINA">中国地图 CHINA</option>
+                        <option value="STRATEGIC">临高核心图 STRATEGIC</option>
+                    </select>
+                    <input type="text" name="name" placeholder="名称：China / Vietnam / Japan / 广东 / 临高首都区 / 登陆点 / 济州岛远洋联络点" required>
+                    <input type="number" name="value" placeholder="元老数量" min="0" value="0">
+                    <input type="number" name="sortOrder" placeholder="排序" value="0">
+                    <label class="check-line"><input type="checkbox" name="visible" value="true" checked> 态势模块显示</label>
+                    <button class="btn btn-primary" type="submit">新增</button>
+                </form>
+            </section>
+
+            <section class="admin-card">
+                <h2>亚洲元老分布</h2>
+                <p class="muted">这里是管理员设置的亚洲分布基数；个人主页登记的同名驻点会自动叠加。建议使用英文国家/地区名，例如 China、Vietnam、Japan、South Korea、Singapore、Malaysia、Thailand、Philippines、Indonesia。</p>
+                <div class="location-table">
+                    <form class="location-row location-row-head">
+                        <span>名称</span><span>数量</span><span>排序</span><span>显示</span><span>操作</span>
+                    </form>
+                    <form class="location-row" th:each="loc : ${worldLocations}" th:action="@{/admin/command/locations/{id}(id=${loc.id})}" method="post">
+                        <input type="hidden" name="scope" value="WORLD">
+                        <input type="text" name="name" th:value="${loc.name}" required>
+                        <input type="number" name="value" th:value="${loc.value}" min="0">
+                        <input type="number" name="sortOrder" th:value="${loc.sortOrder}">
+                        <label class="check-line"><input type="checkbox" name="visible" value="true" th:checked="${loc.visible}"> 显示</label>
+                        <span class="actions-cell">
+                            <button class="btn btn-small btn-primary" type="submit">保存</button>
+                            <button class="btn btn-small danger" type="submit" th:formaction="@{/admin/command/locations/{id}/delete(id=${loc.id})}" onclick="return confirm('确定删除这个驻点？')">删除</button>
+                        </span>
+                    </form>
+                </div>
+            </section>
+
+
+
+            <section class="admin-card">
+                <h2>临高首都区—南海核心驻点</h2>
+                <p class="muted">这里专门管理态势模块第三张图。建议使用：临高首都区 / 登陆点、百仞城政务区、博铺港、海南主基地、广东工业转运区、台湾观察与技术联络点、济州岛远洋联络点、琼州海峡航运点、西沙前哨、南沙补给线。</p>
+                <div class="location-table">
+                    <form class="location-row location-row-head">
+                        <span>名称</span><span>数量</span><span>排序</span><span>显示</span><span>操作</span>
+                    </form>
+                    <form class="location-row" th:each="loc : ${strategicLocations}" th:action="@{/admin/command/locations/{id}(id=${loc.id})}" method="post">
+                        <input type="hidden" name="scope" value="STRATEGIC">
+                        <input type="text" name="name" th:value="${loc.name}" required>
+                        <input type="number" name="value" th:value="${loc.value}" min="0">
+                        <input type="number" name="sortOrder" th:value="${loc.sortOrder}">
+                        <label class="check-line"><input type="checkbox" name="visible" value="true" th:checked="${loc.visible}"> 显示</label>
+                        <span class="actions-cell">
+                            <button class="btn btn-small btn-primary" type="submit">保存</button>
+                            <button class="btn btn-small danger" type="submit" th:formaction="@{/admin/command/locations/{id}/delete(id=${loc.id})}" onclick="return confirm('确定删除这个驻点？')">删除</button>
+                        </span>
+                    </form>
+                </div>
+            </section>
+
+            <section class="admin-card">
+                <h2>全国省份元老分布</h2>
+                <p class="muted">这里是管理员设置的全国分布基数；个人主页登记的同名驻点会自动叠加。省份名称建议使用中文简称，例如 海南、广东、台湾、北京、上海、福建。临高作为县级首都区，请放在“临高核心图”中管理。</p>
+                <div class="location-table">
+                    <form class="location-row location-row-head">
+                        <span>名称</span><span>数量</span><span>排序</span><span>显示</span><span>操作</span>
+                    </form>
+                    <form class="location-row" th:each="loc : ${chinaLocations}" th:action="@{/admin/command/locations/{id}(id=${loc.id})}" method="post">
+                        <input type="hidden" name="scope" value="CHINA">
+                        <input type="text" name="name" th:value="${loc.name}" required>
+                        <input type="number" name="value" th:value="${loc.value}" min="0">
+                        <input type="number" name="sortOrder" th:value="${loc.sortOrder}">
+                        <label class="check-line"><input type="checkbox" name="visible" value="true" th:checked="${loc.visible}"> 显示</label>
+                        <span class="actions-cell">
+                            <button class="btn btn-small btn-primary" type="submit">保存</button>
+                            <button class="btn btn-small danger" type="submit" th:formaction="@{/admin/command/locations/{id}/delete(id=${loc.id})}" onclick="return confirm('确定删除这个驻点？')">删除</button>
+                        </span>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

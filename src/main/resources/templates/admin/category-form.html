@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${mode == 'create'} ? '新增分区' : '编辑分区')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page narrow">
+    <section class="compose-card">
+        <p class="eyebrow">Category</p>
+        <h1 th:text="${mode == 'create'} ? '新增分区' : '编辑分区'">分区表单</h1>
+        <div class="alert" th:if="${error}" th:text="${error}">错误提示</div>
+        <form th:action="${mode == 'create'} ? @{/admin/categories} : @{/admin/categories/{id}(id=${category.id})}" method="post" class="form">
+            <label>分区名称</label>
+            <input name="name" th:value="${category.name}" placeholder="例如 元老院公告 / 工业建设" required maxlength="40">
+            <label>slug 标识</label>
+            <input name="slug" th:value="${category.slug}" placeholder="例如 council-announcement" required maxlength="40">
+            <label>分区说明</label>
+            <textarea name="description" rows="4" placeholder="简单说明这个部门分区的用途" th:text="${category.description}"></textarea>
+            <label>排序值</label>
+            <input name="sortOrder" type="number" th:value="${category.sortOrder} ?: 0">
+            <label>分区负责人账号</label>
+            <input name="managerUsername" th:value="${category.managerUser != null ? category.managerUser.username : ''}" placeholder="填写用户名，例如 wangluobing；留空则只有管理员能改宣传图" maxlength="32">
+            <p class="muted">负责人账号可以进入“宣传图管理”，维护本分区前台滑动宣传图。管理员始终拥有全部分区权限。</p>
+            <label class="checkbox-line">
+                <input type="checkbox" name="executiveOnly" value="true" th:checked="${category.executiveOnly}">
+                仅执委会代表 / 管理员可以发帖
+            </label>
+            <p class="muted">建议只给“元老院公告”“执委会公报”这类正式分区勾选；其它技术、工业、农业、军务等分区让普通元老正常讨论，更符合论坛用途。</p>
+            <button class="btn btn-primary btn-block" type="submit">保存</button>
+            <a class="btn btn-ghost btn-block" th:href="@{/admin/categories}">返回分区管理</a>
+        </form>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

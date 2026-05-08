@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('发起讨论')}" ></head>
+<body class="compose-page compose-v3-page">
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="compose-v3-shell">
+    <form th:action="@{/posts}" method="post" enctype="multipart/form-data" id="post-compose-form" class="compose-v3-form">
+        <header class="compose-v3-topbar">
+            <div class="compose-v3-titlebox">
+                <a th:href="@{/}" class="compose-v3-back">‹ 返回议事厅</a>
+                <input name="title"
+                       th:value="${title}"
+                       placeholder="请输入讨论标题：例如 临高首都区粮食储备与港口防御方案"
+                       minlength="3"
+                       maxlength="120"
+                       required>
+            </div>
+            <div class="compose-v3-actions">
+                <span class="title-counter" data-title-counter>还需要输入 5 个字</span>
+                <button type="button" class="btn btn-ghost" data-save-draft>保存草稿</button>
+                <button type="submit" class="btn btn-primary">发布讨论</button>
+            </div>
+        </header>
+
+        <div class="alert" th:if="${error}" th:text="${error}">错误提示</div>
+
+        <section class="compose-v3-meta">
+            <label>
+                <span>发布分区</span>
+                <select name="categoryId" required>
+                    <option th:each="cat : ${categories}"
+                            th:value="${cat.id}"
+                            th:selected="${categoryId != null and categoryId == cat.id}"
+                            th:text="${cat.executiveOnly ? cat.name + '（执委会代表可发）' : cat.name}">分区</option>
+                </select>
+            </label>
+            <div class="compose-v3-note">
+                <strong>写作建议</strong>
+                <span>按“背景 / 现状 / 资源需求 / 风险 / 请示事项”写，便于各部门快速决策。</span>
+            </div>
+        </section>
+
+        <section class="compose-v3-workbench">
+            <aside class="compose-v3-leftnav">
+                <button type="button" data-template="outline">议案大纲</button>
+                <button type="button" data-template="risk">风险清单</button>
+                <button type="button" data-template="military">军务报告</button>
+                <button type="button" data-import-md>导入 MD</button>
+                <button type="button" data-choose-images>上传图片</button>
+                <p>左侧写 Markdown，右侧实时预览。上传图片会压缩后插入到光标位置，图片和文字可以自由交叉排版。</p>
+            </aside>
+
+            <div class="compose-v3-editor">
+                <div class="editor-toolbar compose-v3-toolbar" role="toolbar" aria-label="Markdown 编辑工具栏">
+                    <button type="button" data-md="bold" title="加粗"><b>B</b><span>加粗</span></button>
+                    <button type="button" data-md="italic" title="斜体"><i>I</i><span>斜体</span></button>
+                    <button type="button" data-md="heading" title="标题">H<span>标题</span></button>
+                    <button type="button" data-md="strike" title="删除线"><s>S</s><span>删除线</span></button>
+                    <button type="button" data-md="ul" title="无序列表">☰<span>无序</span></button>
+                    <button type="button" data-md="ol" title="有序列表">1.<span>有序</span></button>
+                    <button type="button" data-md="task" title="待办">☑<span>待办</span></button>
+                    <button type="button" data-md="quote" title="引用">❝<span>引用</span></button>
+                    <button type="button" data-md="inlineCode" title="行内代码">&lt;/&gt;<span>行码</span></button>
+                    <button type="button" data-md="codeBlock" title="代码块">▣<span>代码块</span></button>
+                    <button type="button" data-md="table" title="表格">▦<span>表格</span></button>
+                    <button type="button" data-md="link" title="链接">🔗<span>链接</span></button>
+                    <button type="button" data-md="image" title="图片">🖼<span>图片</span></button>
+                    <button type="button" data-md="divider" title="分割线">—<span>分割线</span></button>
+                    <button type="button" data-toggle-preview title="隐藏/显示预览">👁<span>预览</span></button>
+                </div>
+
+                <div class="compose-v3-split" data-editor-split>
+                    <div class="compose-v3-pane compose-v3-md-pane">
+                        <div class="compose-v3-pane-head">
+                            <strong>Markdown 原文</strong>
+                            <span>支持标题、列表、表格、图片、代码块</span>
+                        </div>
+                        <textarea id="content-editor"
+                                  name="content"
+                                  rows="24"
+                                  data-rich-editor
+                                  data-no-autoresize
+                                  placeholder="## 背景\n\n## 当前情况\n\n## 资源需求\n\n## 执行方案\n\n## 风险与请示\n"
+                                  required th:text="${content}"></textarea>
+                    </div>
+                    <aside class="compose-v3-pane compose-v3-preview-pane">
+                        <div class="compose-v3-pane-head">
+                            <strong>实时预览</strong>
+                            <span>发布后正文效果</span>
+                        </div>
+                        <div class="rich-content editor-preview compose-v3-preview" data-editor-preview>正文预览会显示在这里。</div>
+                    </aside>
+                </div>
+
+                <input id="post-images-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple hidden data-inline-image-input data-target-textarea="#content-editor" data-upload-status="[data-upload-name]">
+                <input id="md-import-input" type="file" accept=".md,.markdown,text/markdown,text/plain" hidden>
+                <div class="compose-v3-upload-row">
+                    <span data-upload-name>未选择图片或 MD 文件。</span>
+                    <span>图片会插入光标所在位置；可先写文字、插图，再继续写文字。</span>
+                </div>
+            </div>
+        </section>
+    </form>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+<script th:src="@{/js/app.js(v=2026050711)}"></script>
+</body>
+</html>

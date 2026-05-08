@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('编辑元老档案')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<main class="container page admin-page">
+    <section class="admin-hero">
+        <div>
+            <p class="eyebrow">User Archive</p>
+            <h1>编辑元老档案</h1>
+            <p class="muted">管理员可修正昵称、纯数字呼号、部门、驻点、身份状态和临时重置密码；邮箱不在公开页显示。</p>
+        </div>
+        <a class="btn btn-ghost" th:href="@{/admin/users}">返回身份管理</a>
+    </section>
+
+    <section class="admin-shell">
+        <aside class="admin-menu">
+            <a th:href="@{/admin/dashboard}">档案概览</a>
+            <a class="active" th:href="@{/admin/users}">身份管理</a>
+            <a th:href="@{/admin/posts}">议案管理</a>
+            <a th:href="@{/admin/comments}">回复管理</a>
+            <a th:href="@{/admin/categories}">分区管理</a>
+            <a th:href="@{/admin/command}">态势与时间</a>
+        </aside>
+
+        <div class="admin-content admin-card">
+            <div class="alert" th:if="${error}" th:text="${error}">错误</div>
+
+            <div class="user-edit-summary">
+                <div class="avatar avatar-lg">
+                    <img th:if="${user.customAvatar}" th:src="${user.avatarUrl}" alt="avatar">
+                    <span th:unless="${user.customAvatar}" class="avatar-initial" th:text="${user.avatarInitial}">元</span>
+                </div>
+                <div>
+                    <h2 th:text="${user.displayName}">元老昵称</h2>
+                    <p class="muted" th:text="|'@' + ${user.username} + ' · ID ' + ${user.id}|">@username · ID</p>
+                    <a class="btn btn-sm btn-ghost" th:href="@{/users/{username}(username=${user.username})}" target="_blank">查看公开主页</a>
+                </div>
+            </div>
+
+            <form th:action="@{/admin/users/{id}(id=${user.id})}" method="post" class="form user-edit-form">
+                <div class="form-grid two">
+                    <label>用户名（不可改）
+                        <input type="text" th:value="${user.username}" disabled>
+                    </label>
+                    <label>昵称
+                        <input type="text" name="nickname" maxlength="40" required th:value="${user.nickname}">
+                    </label>
+                    <label>头像地址
+                        <input type="text" name="avatarUrl" maxlength="500" placeholder="可填 /uploads/avatars/xxx.jpg，也可留空清除头像" th:value="${user.avatarUrl}">
+                    </label>
+                    <label>呼号（纯数字）
+                        <input type="text" name="callSign" maxlength="12" pattern="\d{3,12}" required th:value="${user.callSign}">
+                    </label>
+                    <label>电报号
+                        <input type="text" name="telegramCode" maxlength="40" th:value="${user.telegramCode}">
+                    </label>
+                    <label>所属部门 / 工作组
+                        <input type="text" name="councilDepartment" maxlength="80" th:value="${user.councilDepartment}">
+                    </label>
+                    <label>职能专长
+                        <input type="text" name="specialty" maxlength="120" th:value="${user.specialty}">
+                    </label>
+                    <label>驻点范围
+                        <select name="stationScope">
+                            <option value="STRATEGIC" th:selected="${user.stationScope == 'STRATEGIC'}">STRATEGIC · 临高/重点驻点</option>
+                            <option value="CHINA" th:selected="${user.stationScope == 'CHINA'}">CHINA · 中国区域</option>
+                            <option value="WORLD" th:selected="${user.stationScope == 'WORLD'}">WORLD · 海外区域</option>
+                        </select>
+                    </label>
+                    <label>驻点名称
+                        <input type="text" name="stationName" maxlength="120" th:value="${user.stationName}">
+                    </label>
+                    <label>同行元老数量
+                        <input type="number" name="stationElderCount" min="0" max="999999" th:value="${user.stationElderCount}">
+                    </label>
+                    <label>身份权限
+                        <select name="role">
+                            <option value="USER" th:selected="${user.role == 'USER'}">普通元老</option>
+                            <option value="EXECUTIVE" th:selected="${user.role == 'EXECUTIVE'}">执委会代表</option>
+                            <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">管理员</option>
+                        </select>
+                    </label>
+                    <label>账号状态
+                        <select name="status">
+                            <option value="ACTIVE" th:selected="${user.status == 'ACTIVE'}">正常 ACTIVE</option>
+                            <option value="DISABLED" th:selected="${user.status == 'DISABLED'}">停用 DISABLED</option>
+                            <option value="BANNED" th:selected="${user.status == 'BANNED'}">封禁 BANNED</option>
+                        </select>
+                    </label>
+                    <label>重置密码（可留空）
+                        <input type="password" name="newPassword" minlength="6" maxlength="72" placeholder="留空则不修改密码">
+                    </label>
+                </div>
+
+                <label>档案简介
+                    <textarea name="bio" rows="5" maxlength="500" th:text="${user.bio}" placeholder="写一点该元老的公开档案说明"></textarea>
+                </label>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">保存元老档案</button>
+                    <a class="btn btn-ghost" th:href="@{/admin/users}">取消</a>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>
