@@ -14,7 +14,7 @@
 | 效果图 1 | ![效果图 1](screenshots/effect-01.jpg) |
 | 效果图 2 | ![效果图 2](screenshots/effect-02.jpg) |
 | 效果图 3 | ![效果图 3](screenshots/effect-03.jpg) |
-| 效果图 4 | ![效果图 4](screenshots/effect-04.jpg) |
+
 
 ## 功能
 
